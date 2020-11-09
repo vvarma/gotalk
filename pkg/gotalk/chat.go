@@ -12,6 +12,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/multiformats/go-multiaddr"
 	"os"
 	"sync"
 )
@@ -69,8 +70,19 @@ func NewChat(username string, randevous string, listenAddress string) (*Chat, er
 	ctx := context.Background()
 	var opts []libp2p.Option
 	if listenAddress != "" {
-		opts = append(opts, libp2p.ListenAddrStrings())
-
+		//opts = append(opts, libp2p.ListenAddrStrings(listenAddress))
+		extMultiAddr, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", listenAddress, 14891))
+		if err != nil {
+			logger.Errorf("Error creating multiaddress: %v\n", err)
+			return nil, err
+		}
+		addressFactory := func(addrs []multiaddr.Multiaddr) []multiaddr.Multiaddr {
+			if extMultiAddr != nil {
+				addrs = append(addrs, extMultiAddr)
+			}
+			return addrs
+		}
+		opts = append(opts, libp2p.AddrsFactory(addressFactory))
 	}
 	host, err := libp2p.New(ctx, opts...)
 	if err != nil {
