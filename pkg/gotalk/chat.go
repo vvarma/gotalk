@@ -65,9 +65,14 @@ func (pc *PeerConnection) write(line string) error {
 	return pc.rw.Flush()
 }
 
-func NewChat(username string, randevous string) (*Chat, error) {
+func NewChat(username string, randevous string, listenAddress string) (*Chat, error) {
 	ctx := context.Background()
-	host, err := libp2p.New(ctx)
+	var opts []libp2p.Option
+	if listenAddress != "" {
+		opts = append(opts, libp2p.ListenAddrStrings())
+
+	}
+	host, err := libp2p.New(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
