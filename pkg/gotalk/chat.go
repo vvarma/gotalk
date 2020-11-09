@@ -71,6 +71,8 @@ func NewChat(username string, randevous string) (*Chat, error) {
 	if err != nil {
 		return nil, err
 	}
+	logger.Info("Host created, I am ", host.ID())
+	logger.Info("@", host.Addrs())
 	c := Chat{
 		h:           host,
 		connections: nil,
