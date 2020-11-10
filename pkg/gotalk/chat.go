@@ -77,10 +77,6 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 	var kDHT *dht.IpfsDHT
 	var err error
 	opts := []libp2p.Option{
-		libp2p.ListenAddrStrings(
-			"/ip4/0.0.0.0/tcp/9001",      // regular tcp connections
-			"/ip4/0.0.0.0/udp/9001/quic", // a UDP endpoint for the QUIC transport
-		),
 		// support TLS connections
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
 		// support secio connections
@@ -121,6 +117,12 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 			return addrs
 		}
 		opts = append(opts, libp2p.AddrsFactory(addressFactory))
+	} else {
+		opts = append(opts, libp2p.ListenAddrStrings(
+			"/ip4/0.0.0.0/tcp/9001",      // regular tcp connections
+			"/ip4/0.0.0.0/udp/9001/quic", // a UDP endpoint for the QUIC transport
+		))
+
 	}
 	host, err := libp2p.New(ctx, opts...)
 	if err != nil {
@@ -171,7 +173,7 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 			continue
 		}
 		logger.Debug("New peer ", peer.ID)
-		stream, err := host.NewStream(ctx, peer.ID, "/gotalk/1.0")
+		stream, err := host.NewStream(ctx, peer.ID, protocol)
 		if err != nil {
 			logger.Warn("Failed to connect to: ", peer.ID)
 			continue
