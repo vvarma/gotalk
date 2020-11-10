@@ -17,6 +17,7 @@ import (
 	libp2pquic "github.com/libp2p/go-libp2p-quic-transport"
 	secio "github.com/libp2p/go-libp2p-secio"
 	libp2ptls "github.com/libp2p/go-libp2p-tls"
+	"github.com/multiformats/go-multiaddr"
 	"os"
 	"sync"
 	"time"
@@ -75,13 +76,10 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 	ctx := context.Background()
 	var kDHT *dht.IpfsDHT
 	var err error
-	host, err := libp2p.New(ctx,
-
+	opts := []libp2p.Option{
 		libp2p.ListenAddrStrings(
 			"/ip4/0.0.0.0/tcp/9001",      // regular tcp connections
 			"/ip4/0.0.0.0/udp/9001/quic", // a UDP endpoint for the QUIC transport
-			fmt.Sprintf("/ip4/%s/tcp/9001", address),
-			fmt.Sprintf("/ip4/%s/quic/9001", address),
 		),
 		// support TLS connections
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
@@ -109,7 +107,22 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 		// it finds it is behind NAT. Use libp2p.Relay(options...) to
 		// enable active relays and more.
 		libp2p.EnableAutoRelay(),
-	)
+	}
+	if address != "" {
+		extMultiAddr, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", address, 9001))
+		if err != nil {
+			logger.Errorf("Error creating multiaddress: %v\n", err)
+			return nil, err
+		}
+		addressFactory := func(addrs []multiaddr.Multiaddr) []multiaddr.Multiaddr {
+			if extMultiAddr != nil {
+				addrs = append(addrs, extMultiAddr)
+			}
+			return addrs
+		}
+		opts = append(opts, libp2p.AddrsFactory(addressFactory))
+	}
+	host, err := libp2p.New(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
