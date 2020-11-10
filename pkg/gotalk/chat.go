@@ -7,14 +7,19 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"
+	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
+	routing "github.com/libp2p/go-libp2p-core/routing"
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
-	"github.com/multiformats/go-multiaddr"
+	libp2pquic "github.com/libp2p/go-libp2p-quic-transport"
+	secio "github.com/libp2p/go-libp2p-secio"
+	libp2ptls "github.com/libp2p/go-libp2p-tls"
 	"os"
 	"sync"
+	"time"
 )
 
 var logger = log.Logger("gotalk")
@@ -66,25 +71,39 @@ func (pc *PeerConnection) write(line string) error {
 	return pc.rw.Flush()
 }
 
-func NewChat(username string, randevous string, listenAddress string) (*Chat, error) {
+func NewChat(username string, randevous string) (*Chat, error) {
 	ctx := context.Background()
-	var opts []libp2p.Option
-	if listenAddress != "" {
-		//opts = append(opts, libp2p.ListenAddrStrings(listenAddress))
-		extMultiAddr, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", listenAddress, 14891))
-		if err != nil {
-			logger.Errorf("Error creating multiaddress: %v\n", err)
-			return nil, err
-		}
-		addressFactory := func(addrs []multiaddr.Multiaddr) []multiaddr.Multiaddr {
-			if extMultiAddr != nil {
-				addrs = append(addrs, extMultiAddr)
-			}
-			return addrs
-		}
-		opts = append(opts, libp2p.AddrsFactory(addressFactory))
-	}
-	host, err := libp2p.New(ctx, opts...)
+	var kDHT *dht.IpfsDHT
+	var err error
+	host, err := libp2p.New(ctx,
+
+		// support TLS connections
+		libp2p.Security(libp2ptls.ID, libp2ptls.New),
+		// support secio connections
+		libp2p.Security(secio.ID, secio.New),
+		// support QUIC
+		libp2p.Transport(libp2pquic.NewTransport),
+		// support any other default transports (TCP)
+		libp2p.DefaultTransports,
+		// Let's prevent our peer from having too many
+		// connections by attaching a connection manager.
+		libp2p.ConnectionManager(connmgr.NewConnManager(
+			100,         // Lowwater
+			400,         // HighWater,
+			time.Minute, // GracePeriod
+		)),
+		// Attempt to open ports using uPNP for NATed hosts.
+		libp2p.NATPortMap(),
+		// Let this host use the DHT to find other hosts
+		libp2p.Routing(func(h host.Host) (routing.PeerRouting, error) {
+			kDHT, err = dht.New(ctx, h)
+			return kDHT, err
+		}),
+		// Let this host use relays and advertise itself on relays if
+		// it finds it is behind NAT. Use libp2p.Relay(options...) to
+		// enable active relays and more.
+		libp2p.EnableAutoRelay(),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -105,13 +124,6 @@ func NewChat(username string, randevous string, listenAddress string) (*Chat, er
 		c.connections = append(c.connections, pc)
 		go pc.read()
 	})
-	kDHT, err := dht.New(ctx, host)
-	if err != nil {
-		return nil, err
-	}
-	if err = kDHT.Bootstrap(ctx); err != nil {
-		logger.Fatal(err)
-	}
 	var wg sync.WaitGroup
 	for _, peerAddr := range dht.DefaultBootstrapPeers {
 		peerinfo, _ := peer.AddrInfoFromP2pAddr(peerAddr)
