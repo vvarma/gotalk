@@ -71,7 +71,7 @@ func (pc *PeerConnection) write(line string) error {
 	return pc.rw.Flush()
 }
 
-func NewChat(username string, randevous string) (*Chat, error) {
+func NewChat(username string, randevous string, address string) (*Chat, error) {
 	ctx := context.Background()
 	var kDHT *dht.IpfsDHT
 	var err error
@@ -80,6 +80,8 @@ func NewChat(username string, randevous string) (*Chat, error) {
 		libp2p.ListenAddrStrings(
 			"/ip4/0.0.0.0/tcp/9001",      // regular tcp connections
 			"/ip4/0.0.0.0/udp/9001/quic", // a UDP endpoint for the QUIC transport
+			fmt.Sprintf("/ip4/%s/tcp/9001", address),
+			fmt.Sprintf("/ip4/%s/quic/9001", address),
 		),
 		// support TLS connections
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
