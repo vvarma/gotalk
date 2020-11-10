@@ -77,6 +77,10 @@ func NewChat(username string, randevous string) (*Chat, error) {
 	var err error
 	host, err := libp2p.New(ctx,
 
+		libp2p.ListenAddrStrings(
+			"/ip4/0.0.0.0/tcp/9001",      // regular tcp connections
+			"/ip4/0.0.0.0/udp/9001/quic", // a UDP endpoint for the QUIC transport
+		),
 		// support TLS connections
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
 		// support secio connections
