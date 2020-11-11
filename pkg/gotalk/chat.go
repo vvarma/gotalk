@@ -175,7 +175,7 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 		logger.Debug("New peer ", peer.ID)
 		stream, err := host.NewStream(ctx, peer.ID, protocol)
 		if err != nil {
-			logger.Warn("Failed to connect to: ", peer.ID)
+			logger.Warn("Failed to connect to: ", peer.ID, err)
 			continue
 		}
 		rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))

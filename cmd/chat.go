@@ -12,7 +12,7 @@ func init() {
 	rootCmd.AddCommand(chatCommand)
 	chatCommand.Flags().StringVarP(&randevousString, "randevous1", "r", "default randevous", "Randevous string")
 	chatCommand.Flags().StringVarP(&userName, "user", "u", "user1", "username")
-	chatCommand.Flags().StringVarP(&listenAddress, "listen", "l", "0.0.0.0", "listen address")
+	chatCommand.Flags().StringVarP(&listenAddress, "listen", "l", "", "listen address")
 }
 
 var (
