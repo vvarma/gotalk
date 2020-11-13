@@ -103,6 +103,7 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 		// it finds it is behind NAT. Use libp2p.Relay(options...) to
 		// enable active relays and more.
 		libp2p.EnableAutoRelay(),
+		//libp2p.BandwidthReporter(metrics.NewBandwidthCounter()),
 	}
 	if address != "" {
 		extMultiAddr, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", address, 9001))
@@ -122,7 +123,6 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 			"/ip4/0.0.0.0/tcp/9001",      // regular tcp connections
 			"/ip4/0.0.0.0/udp/9001/quic", // a UDP endpoint for the QUIC transport
 		))
-
 	}
 	host, err := libp2p.New(ctx, opts...)
 	if err != nil {

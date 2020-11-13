@@ -3,6 +3,7 @@ module github.com/vvarma/gotalk
 go 1.14
 
 require (
+	contrib.go.opencensus.io/exporter/ocagent v0.7.0
 	github.com/btcsuite/btcd v0.21.0-beta // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
 	github.com/google/gopacket v1.1.19 // indirect
@@ -17,9 +18,10 @@ require (
 	github.com/libp2p/go-libp2p-quic-transport v0.8.2
 	github.com/libp2p/go-libp2p-secio v0.2.2
 	github.com/libp2p/go-libp2p-tls v0.1.3
+	github.com/lucas-clemente/quic-go v0.18.1
 	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/spf13/cobra v0.0.5
-	go.opencensus.io v0.22.5 // indirect
+	go.opencensus.io v0.22.5
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
