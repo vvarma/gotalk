@@ -8,6 +8,7 @@ import (
 	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
+	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -18,6 +19,8 @@ import (
 	secio "github.com/libp2p/go-libp2p-secio"
 	libp2ptls "github.com/libp2p/go-libp2p-tls"
 	"github.com/multiformats/go-multiaddr"
+	"io"
+	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -76,7 +79,16 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 	ctx := context.Background()
 	var kDHT *dht.IpfsDHT
 	var err error
+	var r io.Reader
+	r = rand.New(rand.NewSource(42))
+
+	priv, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)
+	if err != nil {
+		return nil, err
+	}
+
 	opts := []libp2p.Option{
+		libp2p.Identity(priv),
 		// support TLS connections
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
 		// support secio connections
