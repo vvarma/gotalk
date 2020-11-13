@@ -16,7 +16,6 @@ import (
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	libp2pquic "github.com/libp2p/go-libp2p-quic-transport"
-	secio "github.com/libp2p/go-libp2p-secio"
 	"github.com/multiformats/go-multiaddr"
 	"io"
 	"math/rand"
@@ -93,7 +92,7 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 		//libp2p.Security(libp2ptls.ID, libp2ptls.New),
 		libp2p.NoSecurity,
 		// support secio connections
-		libp2p.Security(secio.ID, secio.New),
+		//libp2p.Security(secio.ID, secio.New),
 		// support QUIC
 		libp2p.Transport(libp2pquic.NewTransport),
 		// support any other default transports (TCP)
