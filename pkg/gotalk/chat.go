@@ -17,7 +17,6 @@ import (
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	libp2pquic "github.com/libp2p/go-libp2p-quic-transport"
 	secio "github.com/libp2p/go-libp2p-secio"
-	libp2ptls "github.com/libp2p/go-libp2p-tls"
 	"github.com/multiformats/go-multiaddr"
 	"io"
 	"math/rand"
@@ -88,9 +87,11 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 	}
 
 	opts := []libp2p.Option{
+
 		libp2p.Identity(priv),
 		// support TLS connections
-		libp2p.Security(libp2ptls.ID, libp2ptls.New),
+		//libp2p.Security(libp2ptls.ID, libp2ptls.New),
+		libp2p.NoSecurity,
 		// support secio connections
 		libp2p.Security(secio.ID, secio.New),
 		// support QUIC
