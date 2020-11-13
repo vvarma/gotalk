@@ -9,6 +9,7 @@ import (
 	"github.com/libp2p/go-libp2p"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/metrics"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
@@ -103,7 +104,7 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 		// it finds it is behind NAT. Use libp2p.Relay(options...) to
 		// enable active relays and more.
 		libp2p.EnableAutoRelay(),
-		//libp2p.BandwidthReporter(metrics.NewBandwidthCounter()),
+		libp2p.BandwidthReporter(metrics.NewBandwidthCounter()),
 	}
 	if address != "" {
 		extMultiAddr, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", address, 9001))
