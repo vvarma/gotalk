@@ -8,7 +8,6 @@ import (
 	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
-	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/metrics"
 	"github.com/libp2p/go-libp2p-core/network"
@@ -17,9 +16,9 @@ import (
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	libp2pquic "github.com/libp2p/go-libp2p-quic-transport"
+	secio "github.com/libp2p/go-libp2p-secio"
+	libp2ptls "github.com/libp2p/go-libp2p-tls"
 	"github.com/multiformats/go-multiaddr"
-	"io"
-	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -78,22 +77,36 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 	ctx := context.Background()
 	var kDHT *dht.IpfsDHT
 	var err error
-	var r io.Reader
-	r = rand.New(rand.NewSource(42))
+	//var r io.Reader
+	//r = rand.New(rand.NewSource(42))
+	//
+	//priv, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)
+	//if err != nil {
+	//	return nil, err
+	//}
+	bwCounter := metrics.NewBandwidthCounter()
+	go func() {
+		t := time.Tick(10 * time.Second)
+		for {
+			select {
+			case <-t:
+				s := bwCounter.GetBandwidthTotals()
+				logger.Infof("Total: rateIn %f rateOut %f totalIn %d totalOut %d", s.RateIn, s.RateOut, s.TotalIn, s.TotalOut)
+				//for peerId, stat := range bwCounter.GetBandwidthByPeer() {
+				//	logger.Infof("Peer: %s rateIn %f rateOut %f totalIn %d totalOut %d", peerId, stat.RateIn, stat.RateOut, stat.TotalIn, stat.TotalOut)
+				//}
 
-	priv, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)
-	if err != nil {
-		return nil, err
-	}
+			}
+		}
+	}()
 
 	opts := []libp2p.Option{
-
-		libp2p.Identity(priv),
+		//libp2p.Identity(priv),
 		// support TLS connections
-		//libp2p.Security(libp2ptls.ID, libp2ptls.New),
-		libp2p.NoSecurity,
+		libp2p.Security(libp2ptls.ID, libp2ptls.New),
+		//libp2p.NoSecurity,
 		// support secio connections
-		//libp2p.Security(secio.ID, secio.New),
+		libp2p.Security(secio.ID, secio.New),
 		// support QUIC
 		libp2p.Transport(libp2pquic.NewTransport),
 		// support any other default transports (TCP)
@@ -116,7 +129,7 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 		// it finds it is behind NAT. Use libp2p.Relay(options...) to
 		// enable active relays and more.
 		libp2p.EnableAutoRelay(),
-		libp2p.BandwidthReporter(metrics.NewBandwidthCounter()),
+		libp2p.BandwidthReporter(bwCounter),
 	}
 	if address != "" {
 		extMultiAddr, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", address, 9001))
@@ -200,6 +213,19 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 		peerConnections = append(peerConnections, pc)
 		go pc.read()
 		logger.Info("Connected to peer: ", peer.ID)
+		peerId := peer.ID
+		go func() {
+			t := time.Tick(10 * time.Second)
+			for {
+				select {
+				case <-t:
+					stat := bwCounter.GetBandwidthForPeer(peerId)
+					logger.Infof("Peer: %s rateIn %f rateOut %f totalIn %d totalOut %d", peerId, stat.RateIn, stat.RateOut, stat.TotalIn, stat.TotalOut)
+				}
+
+			}
+
+		}()
 	}
 	logger.Info("Found all peers known")
 	c.connections = append(c.connections, peerConnections...)

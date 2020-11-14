@@ -29,5 +29,5 @@ func Execute() error {
 
 func init() {
 	cobra.OnInitialize()
-	rootCmd.PersistentFlags().BoolVarP(&metricsEnabled, "metrics", "m", true, "Enable metrics")
+	rootCmd.PersistentFlags().BoolVarP(&metricsEnabled, "metrics", "m", false, "Enable metrics")
 }
