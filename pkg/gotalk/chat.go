@@ -79,7 +79,7 @@ func NewChat(username string, randevous string, mode string) (*Chat, error) {
 	var kDHT *dht.IpfsDHT
 	var err error
 	//var r io.Reader
-	//r = rand.New(rand.NewSource(42))
+	//r = rand.New(rand.NewSource(40))
 	//
 	//priv, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)
 	//if err != nil {
@@ -133,8 +133,8 @@ func NewChat(username string, randevous string, mode string) (*Chat, error) {
 		libp2p.BandwidthReporter(bwCounter),
 	}
 	opts = append(opts, libp2p.ListenAddrStrings(
-		//"/ip4/0.0.0.0/tcp/9001",      // regular tcp connections
-		"/ip4/0.0.0.0/udp/9001/quic", // a UDP endpoint for the QUIC transport
+		//"/ip4/0.0.0.0/tcp/0",      // regular tcp connections
+		"/ip4/0.0.0.0/udp/0/quic", // a UDP endpoint for the QUIC transport
 	))
 	host, err := libp2p.New(ctx, opts...)
 	if err != nil {
