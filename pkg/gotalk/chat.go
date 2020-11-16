@@ -8,6 +8,7 @@ import (
 	"github.com/ipfs/go-log/v2"
 	"github.com/libp2p/go-libp2p"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
+	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/metrics"
 	"github.com/libp2p/go-libp2p-core/network"
@@ -18,7 +19,8 @@ import (
 	libp2pquic "github.com/libp2p/go-libp2p-quic-transport"
 	secio "github.com/libp2p/go-libp2p-secio"
 	libp2ptls "github.com/libp2p/go-libp2p-tls"
-	"github.com/multiformats/go-multiaddr"
+	"io"
+	"math/rand"
 	"os"
 	"sync"
 	"time"
@@ -73,17 +75,17 @@ func (pc *PeerConnection) write(line string) error {
 	return pc.rw.Flush()
 }
 
-func NewChat(username string, randevous string, address string) (*Chat, error) {
+func NewChat(randevous string) (*Chat, error) {
 	ctx := context.Background()
 	var kDHT *dht.IpfsDHT
 	var err error
-	//var r io.Reader
-	//r = rand.New(rand.NewSource(42))
-	//
-	//priv, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)
-	//if err != nil {
-	//	return nil, err
-	//}
+	var r io.Reader
+	r = rand.New(rand.NewSource(43))
+
+	priv, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)
+	if err != nil {
+		return nil, err
+	}
 	bwCounter := metrics.NewBandwidthCounter()
 	go func() {
 		t := time.Tick(10 * time.Second)
@@ -101,7 +103,7 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 	}()
 
 	opts := []libp2p.Option{
-		//libp2p.Identity(priv),
+		libp2p.Identity(priv),
 		// support TLS connections
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
 		//libp2p.NoSecurity,
@@ -110,7 +112,7 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 		// support QUIC
 		libp2p.Transport(libp2pquic.NewTransport),
 		// support any other default transports (TCP)
-		libp2p.DefaultTransports,
+		//libp2p.DefaultTransports,
 		// Let's prevent our peer from having too many
 		// connections by attaching a connection manager.
 		libp2p.ConnectionManager(connmgr.NewConnManager(
@@ -131,25 +133,10 @@ func NewChat(username string, randevous string, address string) (*Chat, error) {
 		libp2p.EnableAutoRelay(),
 		libp2p.BandwidthReporter(bwCounter),
 	}
-	if address != "" {
-		extMultiAddr, err := multiaddr.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", address, 9001))
-		if err != nil {
-			logger.Errorf("Error creating multiaddress: %v\n", err)
-			return nil, err
-		}
-		addressFactory := func(addrs []multiaddr.Multiaddr) []multiaddr.Multiaddr {
-			if extMultiAddr != nil {
-				addrs = append(addrs, extMultiAddr)
-			}
-			return addrs
-		}
-		opts = append(opts, libp2p.AddrsFactory(addressFactory))
-	} else {
-		opts = append(opts, libp2p.ListenAddrStrings(
-			"/ip4/0.0.0.0/tcp/9001",      // regular tcp connections
-			"/ip4/0.0.0.0/udp/9001/quic", // a UDP endpoint for the QUIC transport
-		))
-	}
+	opts = append(opts, libp2p.ListenAddrStrings(
+		//"/ip4/0.0.0.0/tcp/0",      // regular tcp connections
+		"/ip4/0.0.0.0/udp/0/quic", // a UDP endpoint for the QUIC transport
+	))
 	host, err := libp2p.New(ctx, opts...)
 	if err != nil {
 		return nil, err

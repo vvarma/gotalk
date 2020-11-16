@@ -22,7 +22,7 @@ var (
 	chatCommand     = &cobra.Command{
 		Use: "chat",
 		Run: func(cmd *cobra.Command, args []string) {
-			c, err := gotalk.NewChat(userName, randevousString, listenAddress)
+			c, err := gotalk.NewChat(randevousString)
 			if err != nil {
 				logger.Fatal("Error starting chat command", err)
 			}
