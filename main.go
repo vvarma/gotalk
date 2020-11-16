@@ -8,7 +8,7 @@ import (
 func main() {
 	log.SetAllLoggers(log.LevelWarn)
 	log.SetLogLevel("commands", "debug")
-	log.SetLogLevel("gotalk", "debug")
+	log.SetLogLevel("gotalk", "info")
 	err := cmd.Execute()
 	if err != nil {
 		panic(err)
