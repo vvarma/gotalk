@@ -77,7 +77,14 @@ type chatter struct {
 }
 
 func New(ctx context.Context, c client.Client, ds dost.Store) Chatter {
-	return &chatter{c: c, s: &store{}}
+	ch := &chatter{
+		c:                 c,
+		s:                 &store{},
+		activeChats:       make(map[string]*bufio.ReadWriter),
+		activeConnections: make(map[string]*bufio.ReadWriter),
+		ds:                ds}
+	c.Conn().SetStreamHandler(chatProtocol, ch.streamHandler())
+	return ch
 }
 func (ch *chatter) connectionIn(ctx context.Context, cxRw *bufio.ReadWriter) {
 	for {
@@ -110,6 +117,10 @@ func (ch *chatter) connectionIn(ctx context.Context, cxRw *bufio.ReadWriter) {
 				_, err := chRw.WriteString(body.Text.GetBody())
 				if err != nil {
 					logger.Error("Error writing to chat out", err)
+				}
+				err = chRw.Flush()
+				if err != nil {
+					logger.Error("Error flushing to chat out", err)
 				}
 			}
 		}
@@ -151,7 +162,7 @@ func (ch *chatter) Start(ctx context.Context, to *dost.Dost, rw *bufio.ReadWrite
 	var activeConn *bufio.ReadWriter
 	var ok bool
 	if activeConn, ok = ch.activeConnections[to.UserName]; !ok {
-		stream, err := ch.c.Conn().NewStream(ctx, to.PeerId)
+		stream, err := ch.c.Conn().NewStream(ctx, to.PeerId, chatProtocol)
 		if err != nil {
 			return err
 		}

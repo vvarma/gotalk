@@ -17,7 +17,7 @@ type p struct {
 	chat.Chatter
 }
 
-func New(ctx context.Context, opts Options) (ParaU, error) {
+func New(ctx context.Context, opts client.Options) (ParaU, error) {
 	c, err := client.New(ctx, opts)
 	if err != nil {
 		return nil, err

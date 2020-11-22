@@ -16,7 +16,6 @@ import (
 	routedhost "github.com/libp2p/go-libp2p/p2p/host/routed"
 	"github.com/multiformats/go-multiaddr"
 	"github.com/pkg/errors"
-	"github.com/vvarma/gotalk/pkg/paraU"
 	"github.com/vvarma/gotalk/pkg/paraU/config"
 	"os"
 	"sync"
@@ -79,7 +78,7 @@ func bootstrapConn(ctx context.Context, conn host.Host) {
 	wg.Wait()
 }
 
-func New(ctx context.Context, options paraU.Options) (Client, error) {
+func New(ctx context.Context, options Options) (Client, error) {
 	conf, err := config.LoadConfig()
 	if errors.Is(err, os.ErrNotExist) {
 		var err error

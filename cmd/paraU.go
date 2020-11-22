@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/vvarma/gotalk/cmd/subcmd"
 	"github.com/vvarma/gotalk/pkg/paraU"
+	"github.com/vvarma/gotalk/pkg/paraU/client"
 	"os"
 	"strings"
 )
@@ -20,7 +21,7 @@ var (
 		Use: "paraU",
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx := context.Background()
-			opts := paraU.Options{Username: userName}
+			opts := client.Options{Username: userName}
 			client, err := paraU.New(ctx, opts)
 			if err != nil {
 				logger.Error("Error in execution", err)

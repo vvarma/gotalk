@@ -16,6 +16,3 @@ type ParaU interface {
 	chat.Chatter
 }
 
-type Options struct {
-	Username string
-}

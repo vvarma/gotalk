@@ -41,7 +41,7 @@ func (co *controller) sendMessage(ctx context.Context, toPeer peer.ID, msg *Cont
 		return err
 	}
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
-	return util.SizeDelimtedWriter(ctx, rw, msg)
+	return util.SizeDelimtedWriter(ctx, rw.Writer, msg)
 
 }
 func (co *controller) introductions(stream network.Stream) error {
@@ -73,7 +73,7 @@ func (co *controller) introductions(stream network.Stream) error {
 }
 func readControlMsg(ctx context.Context, rw *bufio.ReadWriter) (*ControlMessage, error) {
 	msg := &ControlMessage{}
-	err := util.SizeDelimitedReader(ctx, rw, msg)
+	err := util.SizeDelimitedReader(ctx, rw.Reader, msg)
 	if err != nil {
 		return nil, err
 	}

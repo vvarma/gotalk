@@ -9,3 +9,7 @@ type Client interface {
 	Conn() *routedhost.RoutedHost
 	Conf() config.Config
 }
+
+type Options struct {
+	Username string
+}

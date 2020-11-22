@@ -137,6 +137,10 @@ func (ds *dostStore) ApproveOutgoing(ctx context.Context, id peer.ID, userName s
 			ds.callback(ctx, Event{Dost: o, EventType: Approved})
 		}
 	}
+	err := ds.Save()
+	if err != nil {
+		logger.Error("Error in saving ", err)
+	}
 }
 
 func (ds *dostStore) RejectOutgoing(ctx context.Context, id peer.ID) {
@@ -149,6 +153,10 @@ func (ds *dostStore) RejectOutgoing(ctx context.Context, id peer.ID) {
 			ds.Outgoing = ds.Outgoing[:len(ds.Outgoing)-1]
 			ds.callback(ctx, Event{Dost: o, EventType: Rejected})
 		}
+	}
+	err := ds.Save()
+	if err != nil {
+		logger.Error("Error in saving ", err)
 	}
 }
 
@@ -166,11 +174,20 @@ func (ds *dostStore) AddIncoming(_ context.Context, d *Dost) {
 	defer ds.lock.Unlock()
 	ds.Incoming = append(ds.Incoming, d)
 	logger.Info("One new Incoming request, total:", len(ds.Incoming))
+	err := ds.Save()
+	if err != nil {
+		logger.Error("Error in saving ", err)
+	}
+
 }
 func (ds *dostStore) AddOutgoing(_ context.Context, d *Dost) {
 	ds.lock.Lock()
 	defer ds.lock.Unlock()
 	ds.Outgoing = append(ds.Outgoing, d)
+	err := ds.Save()
+	if err != nil {
+		logger.Error("Error in saving ", err)
+	}
 }
 func (ds *dostStore) Review(ctx context.Context, reviewFn func(*Dost) bool) {
 	ds.lock.Lock()
@@ -186,5 +203,9 @@ func (ds *dostStore) Review(ctx context.Context, reviewFn func(*Dost) bool) {
 			logger.Info("Rejecting friend request from", iDost)
 			ds.send(ctx, Event{Dost: iDost, EventType: Rejected})
 		}
+	}
+	err := ds.Save()
+	if err != nil {
+		logger.Error("Error in saving ", err)
 	}
 }
