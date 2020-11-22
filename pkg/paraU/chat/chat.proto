@@ -1,0 +1,15 @@
+syntax = "proto3";
+package chat;
+message ChatMessage {
+    message Meta {
+        string from_peer = 1;
+        string to_peer = 2;
+    }
+    message Text {
+        string body = 1;
+    }
+    Meta meta = 1;
+    oneof msg {
+        Text text = 2;
+    }
+}

@@ -9,6 +9,7 @@ func main() {
 	log.SetAllLoggers(log.LevelWarn)
 	log.SetLogLevel("commands", "debug")
 	log.SetLogLevel("gotalk", "info")
+	log.SetLogLevel("paraU", "debug")
 	err := cmd.Execute()
 	if err != nil {
 		panic(err)

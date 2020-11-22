@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package gotalk;
+
+message AdminMessage {
+    message Identity {
+        string username = 1;
+    }
+    message CurrentHost {
+        string peerId = 1;
+    }
+
+    Identity identity = 1;
+    CurrentHost current_host = 2;
+}
+

@@ -1,0 +1,26 @@
+syntax = "proto3";
+package control;
+
+message ControlMessage {
+    message Introduction {
+        string peer_id = 1;
+        string user_name = 2;
+    }
+    message DostStatusUpdate {
+        message Meta {
+            string user_name = 1;
+        }
+        enum status {
+            approved = 0;
+            rejected = 1;
+        }
+        string from_peer_id = 1;
+        string to_peer_id = 2;
+        status updated_status = 3;
+        Meta meta = 4;
+    }
+    oneof msg {
+        Introduction introduction = 1;
+        DostStatusUpdate dost_status_update = 2;
+    }
+}

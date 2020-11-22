@@ -1,0 +1,19 @@
+syntax = "proto3";
+package dost;
+
+message DostE {
+    enum Status {
+        unknown = 0;
+        incoming = 1;
+        outgoing = 2;
+        accepted = 3;
+        rejected = 4;
+    }
+    string peer_id = 1;
+    string user_name = 2;
+    Status status = 3;
+}
+
+message DostStoreE {
+    repeated DostE dosts = 1;
+}

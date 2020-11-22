@@ -42,9 +42,10 @@ const (
 )
 
 type PeerConnection struct {
-	peerId peer.ID
-	status peerConnectionStatus
-	rw     *bufio.ReadWriter
+	peerId   peer.ID
+	userName string
+	status   peerConnectionStatus
+	rw       *bufio.ReadWriter
 }
 
 func (pc *PeerConnection) read() {
@@ -78,13 +79,6 @@ func NewChat(username string, randevous string, mode string) (*Chat, error) {
 	ctx := context.Background()
 	var kDHT *dht.IpfsDHT
 	var err error
-	//var r io.Reader
-	//r = rand.New(rand.NewSource(40))
-	//
-	//priv, _, err := crypto.GenerateKeyPairWithReader(crypto.RSA, 2048, r)
-	//if err != nil {
-	//	return nil, err
-	//}
 	bwCounter := metrics.NewBandwidthCounter()
 	go func() {
 		t := time.Tick(10 * time.Second)
@@ -93,47 +87,28 @@ func NewChat(username string, randevous string, mode string) (*Chat, error) {
 			case <-t:
 				s := bwCounter.GetBandwidthTotals()
 				logger.Infof("Total: rateIn %f rateOut %f totalIn %d totalOut %d", s.RateIn, s.RateOut, s.TotalIn, s.TotalOut)
-				//for peerId, stat := range bwCounter.GetBandwidthByPeer() {
-				//	logger.Infof("Peer: %s rateIn %f rateOut %f totalIn %d totalOut %d", peerId, stat.RateIn, stat.RateOut, stat.TotalIn, stat.TotalOut)
-				//}
-
 			}
 		}
 	}()
 
 	opts := []libp2p.Option{
-		//libp2p.Identity(priv),
-		// support TLS connections
 		libp2p.Security(libp2ptls.ID, libp2ptls.New),
-		//libp2p.NoSecurity,
-		// support secio connections
 		libp2p.Security(secio.ID, secio.New),
-		// support QUIC
 		libp2p.Transport(libp2pquic.NewTransport),
-		// support any other default transports (TCP)
-		//libp2p.DefaultTransports,
-		// Let's prevent our peer from having too many
-		// connections by attaching a connection manager.
 		libp2p.ConnectionManager(connmgr.NewConnManager(
 			100,         // Lowwater
 			400,         // HighWater,
 			time.Minute, // GracePeriod
 		)),
-		// Attempt to open ports using uPNP for NATed hosts.
 		libp2p.NATPortMap(),
-		// Let this host use the DHT to find other hosts
 		libp2p.Routing(func(h host.Host) (routing.PeerRouting, error) {
 			kDHT, err = dht.New(ctx, h)
 			return kDHT, err
 		}),
-		// Let this host use relays and advertise itself on relays if
-		// it finds it is behind NAT. Use libp2p.Relay(options...) to
-		// enable active relays and more.
 		libp2p.EnableAutoRelay(),
 		libp2p.BandwidthReporter(bwCounter),
 	}
 	opts = append(opts, libp2p.ListenAddrStrings(
-		//"/ip4/0.0.0.0/tcp/0",      // regular tcp connections
 		"/ip4/0.0.0.0/udp/0/quic", // a UDP endpoint for the QUIC transport
 	))
 	host, err := libp2p.New(ctx, opts...)
