@@ -25,6 +25,8 @@ type Store interface {
 	AddOutgoing(_ context.Context, d *Dost)
 	Review(ctx context.Context, reviewFn func(*Dost) bool)
 	List(ctx context.Context)[]*Dost
+	ListIncoming(ctx context.Context) []*Dost
+	AcceptIncoming(ctx context.Context, peerId peer.ID) error
 	DostByUserName(ctx context.Context, userName string) (*Dost, error)
 	DostByPeerId(ctx context.Context, peerid peer.ID) *Dost
 	Save() error

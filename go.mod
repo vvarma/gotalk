@@ -6,6 +6,7 @@ require (
 	contrib.go.opencensus.io/exporter/ocagent v0.7.0
 	github.com/btcsuite/btcd v0.21.0-beta // indirect
 	github.com/davidlazar/go-crypto v0.0.0-20200604182044-b73af7476f6c // indirect
+	github.com/gdamore/tcell/v2 v2.1.0
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/protobuf v1.4.2
 	github.com/google/gopacket v1.1.19 // indirect
@@ -23,6 +24,7 @@ require (
 	github.com/lucas-clemente/quic-go v0.18.1
 	github.com/multiformats/go-multiaddr v0.3.1
 	github.com/pkg/errors v0.9.1
+	github.com/rivo/tview v0.0.0-20201204190810-5406288b8e4e
 	github.com/spf13/cobra v0.0.5
 	github.com/urfave/cli/v2 v2.3.0
 	go.opencensus.io v0.22.5

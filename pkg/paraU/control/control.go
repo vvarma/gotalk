@@ -36,6 +36,7 @@ func (co *controller) AddFriend(ctx context.Context, peerId string) error {
 }
 
 func (co *controller) sendMessage(ctx context.Context, toPeer peer.ID, msg *ControlMessage) error {
+	logger.Debug("toPeer", toPeer, "Message", msg)
 	stream, err := co.c.Conn().NewStream(ctx, toPeer, controlProtocol)
 	if err != nil {
 		return err
@@ -85,6 +86,7 @@ func (co *controller) readLoop(ctx context.Context, rw *bufio.ReadWriter) error 
 		if err != nil {
 			return err
 		}
+		logger.Debug("Message", msg)
 		switch body := msg.Msg.(type) {
 		case *ControlMessage_Introduction_:
 			intro := body.Introduction
@@ -121,14 +123,11 @@ func (co *controller) getStreamHandler() network.StreamHandler {
 		rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 		err := co.readLoop(ctx, rw)
 		logger.Error("Exiting the read loop", err)
-		//err := co.introductions(stream)
-		if err != nil {
-			logger.Error("Error in making introductions ", err)
-		}
 	}
 }
 
 func (co *controller) DostEventCallback(ctx context.Context, event dost.Event) {
+	logger.Debug("Got a callback", event.EventType)
 	switch event.EventType {
 	case dost.Approved:
 		msg := &ControlMessage{

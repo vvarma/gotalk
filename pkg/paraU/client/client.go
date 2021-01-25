@@ -37,6 +37,10 @@ func (c *client) Conn() *routedhost.RoutedHost {
 	return c.conn
 }
 
+func (c *client) Peers() {
+
+}
+
 func getConnectOptions(ctx context.Context, conf config.Config) []libp2p.Option {
 	opts := []libp2p.Option{
 		libp2p.Identity(conf.PrivKey()),
